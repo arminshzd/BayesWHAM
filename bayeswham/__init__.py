@@ -12,6 +12,6 @@ __version__ = "1.1.0"
 __author__ = "Andrew L Ferguson"
 __license__ = "MIT"
 
-from .core import BayesWHAM, BayesReweight
+from .core import BayesWHAM, BayesReweight, PLUMEDConverter
 
-__all__ = ['BayesWHAM', 'BayesReweight', '__version__']
+__all__ = ['BayesWHAM', 'BayesReweight', 'PLUMEDConverter', '__version__']

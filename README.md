@@ -21,6 +21,7 @@ A Bayesian implementation of the Weighted Histogram Analysis Method (WHAM) for e
   - [Legacy CLI](#legacy-cli-1)
   - [Output Files](#bayesreweight-output-files)
 - [Plotting](#plotting)
+- [PLUMED Integration](#plumed-integration)
 - [Input File Formats](#input-file-formats)
 - [Energy Units](#energy-units)
 - [Examples](#examples)
@@ -33,7 +34,7 @@ A Bayesian implementation of the Weighted Histogram Analysis Method (WHAM) for e
 
 **BayesWHAM** provides statistically optimal estimates of free energy surfaces (FES) from molecular dynamics umbrella sampling data. It solves the generalized WHAM self-consistency equations under a Bayesian prior and estimates uncertainties by Metropolis-Hastings (MH) sampling from the posterior distribution.
 
-The package provides four command-line tools:
+The package provides five command-line tools:
 
 | Tool | Description |
 |---|---|
@@ -41,6 +42,7 @@ The package provides four command-line tools:
 | `bayesreweight` | Projects the FES onto arbitrary variables beyond the umbrella sampling coordinates |
 | `bayeswham-plot` | Plotting utility for 1D, 2D, and 3D BayesWHAM results |
 | `bayesreweight-plot` | Plotting utility for reweighted projection results |
+| `bayeswham-plumed` | Converts PLUMED COLVAR files directly into bayeswham input files |
 
 ---
 
@@ -51,6 +53,7 @@ The package provides four command-line tools:
 - Bayesian priors: uniform (`none`), symmetric Dirichlet, and Gaussian
 - Rigorous uncertainty quantification via Metropolis-Hastings posterior sampling
 - YAML-based configuration (recommended) with legacy CLI backward compatibility
+- Direct PLUMED COLVAR ingestion via `bayeswham-plumed`
 - Python 3.7+ compatible, installable as a package
 
 ---
@@ -281,6 +284,95 @@ bayesreweight-plot
 ```
 
 Both plotters support 1D, 2D, and 3D visualizations and output `.jpg` and `.eps` files. They read from default filenames in the current directory; pass custom paths as arguments if needed.
+
+---
+
+## PLUMED Integration
+
+`bayeswham-plumed` converts PLUMED COLVAR files from umbrella sampling runs directly into all input files needed by `bayeswham`, and writes a ready-to-use `bayeswham_config.yaml`.
+
+### Input file format
+
+Create a plain text file listing one umbrella window per line:
+
+```
+# colvar_path                         umb_center   umb_k
+/path/to/window_01/COLVAR             -170.0       0.0239
+/path/to/window_02/COLVAR             -150.0       0.0239
+/path/to/window_03/COLVAR             -130.0       0.0239
+...
+```
+
+Lines beginning with `#` are ignored. Fields are whitespace-delimited.
+
+### Usage
+
+```bash
+bayeswham-plumed windows.txt [options]
+```
+
+**Options:**
+
+| Flag | Default | Description |
+|---|---|---|
+| `--variable NAME` | `cv1` | Column name to extract from the `#! FIELDS` header |
+| `--output-dir DIR` | `./bayeswham_input` | Directory to write all output files |
+| `--nbins N` | `50` | Number of histogram bins |
+| `--temperature T` | `300.0` | Temperature in Kelvin |
+| `--skip N` | `0` | Number of initial frames to skip |
+| `--discard-fraction F` | `0.1` | Fraction of the leading trajectory to discard for equilibration (applied after `--skip`, always from the start) |
+| `--bin-range MIN MAX` | auto | Manual histogram range; auto-detected from data if omitted |
+
+> **Force constant units (`umb_k`):** Must be in **energy_unit / CV_unit²**, matching the Boltzmann constant used by `bayeswham`. With the default `kB = 0.0083144621 kJ/mol·K`, `umb_k` should be in **kJ/mol per (CV unit)²** — consistent with PLUMED's `RESTRAINT` `kappa` output. If your simulation used kcal/mol, set `boltzmann_constant: 0.001987204` in the generated `bayeswham_config.yaml`.
+
+> **Equilibration discard (`--discard-fraction`):** Removes the specified fraction of frames from the **beginning** of each trajectory (after any `--skip` frames). For example, `--discard-fraction 0.2` discards the first 20% of each window's trajectory. There is no end-trimming; all retained frames run to the end of the COLVAR file.
+
+### Example
+
+```bash
+bayeswham-plumed windows.txt \
+    --variable cv1 \
+    --nbins 60 \
+    --temperature 300 \
+    --discard-fraction 0.2 \
+    --output-dir ./wham_input
+
+# Then run bayeswham with the generated config
+bayeswham --config ./wham_input/bayeswham_config.yaml
+```
+
+### Outputs
+
+`bayeswham-plumed` writes the following into `--output-dir`:
+
+| Path | Description |
+|---|---|
+| `hist_binEdges.txt` | Histogram bin edges |
+| `bias/harmonic_biases.txt` | Umbrella centers and force constants |
+| `hist/hist_1.txt`, `hist_2.txt`, ... | Per-window histogram counts |
+| `bayeswham_config.yaml` | Ready-to-use bayeswham config (edit prior/MH settings as needed) |
+| `simulation_summary.txt` | Human-readable summary of loaded windows |
+
+The generated `bayeswham_config.yaml` uses sensible defaults (Dirichlet prior, α=2, 500k MH steps). Review and adjust the `metropolis_hastings` and `prior` sections before running `bayeswham` on production data.
+
+### Using bayesreweight after bayeswham-plumed
+
+`bayeswham-plumed` produces everything needed to run `bayeswham` and recover F in the umbrella sampling coordinate. If you also want to project the FES onto **different coordinates** using `bayesreweight`, you will need single-column trajectory files for each umbrella window in the projection variable(s).
+
+These can be extracted directly from your COLVAR files. For example, to extract column `cv2` from each COLVAR:
+
+```bash
+# Get the column index of cv2 from the header (0-indexed, excluding the #! FIELDS token)
+# Example header: #! FIELDS time cv1 cv2 ...
+#   time=col1, cv1=col2, cv2=col3 → awk field $3
+
+mkdir -p traj_cv2
+for i in $(seq 1 N); do
+    awk 'NR>1 && !/^#/ {print $3}' /path/to/window_${i}/COLVAR > traj_cv2/traj_${i}.txt
+done
+```
+
+Adjust the awk field index (`$3`) to match the column position of your projection variable in the COLVAR header. The trajectory files must be in the same order and have the same number of rows as the umbrella windows passed to `bayeswham-plumed` (after applying the same `--skip` and `--discard-fraction`).
 
 ---
 

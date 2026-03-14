@@ -709,7 +709,7 @@ def main():
 			print("\nERROR - WHAM iteration did not converge within maxIter_WHAM = %d" % (maxIter_WHAM))
 			sys.exit(-1)
 		
-	print("\tWHAM eqautions converged to within tolerance of %15.5e" % (tol_WHAM))
+	print("\tWHAM equations converged to within tolerance of %15.5e" % (tol_WHAM))
 	print("DONE!\n\n")
 
 	# - unmasking p_l_NZ into p_l_MAP by reconstituting empty bins l with M_l=0 with optimal values p_l=0 

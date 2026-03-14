@@ -65,6 +65,7 @@ setup(
             'bayesreweight=bayeswham.core.bayesreweight:main',
             'bayeswham-plot=bayeswham.plotting.bayeswham_plotter:main',
             'bayesreweight-plot=bayeswham.plotting.bayesreweight_plotter:main',
+            'bayeswham-plumed=bayeswham.core.plumed:main',
         ],
     },
 
