@@ -1,0 +1,37 @@
+# BayesWHAM Configuration File
+# Example configuration for 1D alanine dipeptide umbrella sampling in phi dihedral
+
+# Umbrella sampling parameters
+umbrella_sampling:
+  dim: 1                        # Dimensionality of umbrella sampling
+  periodicity: [1]              # Periodicity in each dimension (1=periodic, 0=non-periodic)
+  temperature: 298.0            # Temperature in Kelvin
+  # boltzmann_constant: 0.0083144621  # Optional: Boltzmann constant (default: 0.0083144621 kJ/mol·K)
+                                      # Common values: 0.001987204 (kcal/mol·K), 1.380649e-23 (J/K)
+
+# Input files
+input_files:
+  harmonic_biases: "./diala_phi_EXAMPLE/bias/harmonic_biases.txt"
+  hist_bin_edges: "./diala_phi_EXAMPLE/hist/hist_binEdges.txt"
+  hist_dir: "./diala_phi_EXAMPLE/hist"
+
+# WHAM convergence parameters
+wham:
+  tolerance: 1.0e-15           # Convergence tolerance for WHAM equations
+  max_iterations: 1000000      # Maximum iterations for WHAM convergence
+
+# Metropolis-Hastings sampling parameters
+metropolis_hastings:
+  steps: 1000000               # Number of MH sampling steps
+  save_modulus: 1000           # Save every Nth sample
+  print_modulus: 1000          # Print progress every Nth step
+  max_step_size: 5.0e-4        # Maximum step size in probability space
+  random_seed: 200184          # Random seed for reproducibility
+
+# Bayesian prior
+prior:
+  type: "Dirichlet"            # Prior type: 'none', 'Dirichlet', or 'Gaussian'
+  alpha: 2.0                   # Hyperparameter (concentration for Dirichlet, scale for Gaussian)
+
+# Output directory (optional, defaults to current directory)
+# output_dir: "./output"

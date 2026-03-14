@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bayeswham"
+version = "1.1.0"
+description = "Bayesian Weighted Histogram Analysis Method for molecular free energy estimation"
+readme = "README.md"
+requires-python = ">=3.7"
+license = {text = "MIT"}
+authors = [
+    {name = "Andrew L Ferguson"}
+]
+keywords = ["molecular dynamics", "free energy", "umbrella sampling", "WHAM", "Bayesian statistics"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Chemistry",
+    "Topic :: Scientific/Engineering :: Physics",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "numpy>=1.19.0",
+    "scipy>=1.5.0",
+    "pyyaml>=5.3.0",
+]
+
+[project.optional-dependencies]
+plotting = ["matplotlib>=3.3.0"]
+dev = [
+    "pytest>=6.0.0",
+    "pytest-cov>=2.10.0",
+]
+all = ["bayeswham[plotting,dev]"]
+
+[project.scripts]
+bayeswham = "bayeswham.core.bayeswham:main"
+bayesreweight = "bayeswham.core.bayesreweight:main"
+bayeswham-plot = "bayeswham.plotting.bayeswham_plotter:main"
+bayesreweight-plot = "bayeswham.plotting.bayesreweight_plotter:main"
+
+[project.urls]
+Homepage = "https://github.com/FergusonAJ/BayesWHAM"
+Documentation = "https://github.com/FergusonAJ/BayesWHAM/blob/master/README.md"
+Repository = "https://github.com/FergusonAJ/BayesWHAM"
+"Bug Tracker" = "https://github.com/FergusonAJ/BayesWHAM/issues"
+
+[tool.setuptools]
+packages = ["bayeswham", "bayeswham.core", "bayeswham.plotting", "bayeswham.config"]
+
+[tool.setuptools.package-data]
+"bayeswham.config" = ["*.yaml"]

@@ -1,0 +1,31 @@
+# BayesReweight Configuration File
+# Example configuration for reweighting 1D phi umbrella sampling to 2D [phi, psi] projection
+
+# Temperature
+temperature: 298.0             # Temperature in Kelvin
+# boltzmann_constant: 0.0083144621  # Optional: Boltzmann constant (default: 0.0083144621 kJ/mol·K)
+                                    # Common values: 0.001987204 (kcal/mol·K), 1.380649e-23 (J/K)
+
+# Umbrella sampling coordinates
+umbrella:
+  dim: 1                       # Dimensionality of umbrella sampling
+  periodicity: [1]             # Periodicity in each dimension
+
+  # Input files for umbrella sampling
+  files:
+    harmonic_biases: "./diala_phi_EXAMPLE/bias/harmonic_biases.txt"
+    trajectory_dir: "./diala_phi_EXAMPLE/traj"
+    hist_bin_edges: "./diala_phi_EXAMPLE/hist/hist_binEdges.txt"
+    hist_dir: "./diala_phi_EXAMPLE/hist"
+    f_map: "./diala_phi_EXAMPLE/BayesWHAM_OUTPUT/f_MAP.txt"
+    f_mh: "./diala_phi_EXAMPLE/BayesWHAM_OUTPUT/f_MH.txt"
+
+# Projection coordinates
+projection:
+  # Input files for projection
+  files:
+    trajectory_dir: "./diala_phi_EXAMPLE/traj_aux__phi_psi"
+    hist_bin_edges: "./diala_phi_EXAMPLE/hist_binEdges_phi_psi.txt"
+
+# Output directory (optional, defaults to current directory)
+# output_dir: "./output"
